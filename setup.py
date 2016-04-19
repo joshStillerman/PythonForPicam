@@ -33,6 +33,6 @@ setup(name='PythonForPicam',
       'Topic :: Scientific/Engineering',
       ],
       keywords = ('princeton instruments','camera',),
-      install_requires=['numpy','ctypes'],
+      install_requires=['numpy'],
       zip_safe = False,
      )
