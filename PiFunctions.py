@@ -16,10 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import ctypes as ctypes
-picamDll = 'DLLs/Picam.dll'
+picamDll = 'Picam.dll'
 picam = ctypes.cdll.LoadLibrary(picamDll)
-
-
     
 ### Begin imported Functions
 

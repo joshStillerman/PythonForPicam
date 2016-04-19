@@ -86,6 +86,41 @@ class PicamAvailableData(ctypes.Structure):
 class PicamAvailableData2(ctypes.Structure):
     _fields_ = [ ( "initial_readout", ctypes.POINTER(type(ctypes.c_void_p()))), ("readout_count", pi64s)]
 
+# PicamRoi
+"""
+typedef struct PicamRoi
+{
+    piint x;
+    piint width;
+    piint x_binning;
+    piint y;
+    piint height;
+    piint y_binning;
+} PicamRoi;
+"""
+class PicamRoi(ctypes.Structure):
+    _fields_ = [("x", piint),
+                ("width", piint),
+                ("x_binning", piint),
+                ("y", piint),
+                ("height", piint),
+                ("y_binning", piint)]
+# PicamRois
+"""                
+typedef struct PicamRois
+{
+    PicamRoi* roi_array;
+    piint     roi_count;
+} PicamRois;
+"""
+class PicamRois(ctypes.Structure):
+    _fields_ = [("roi_array", ctypes.POINTER(PicamRoi)),
+                ("roi_count", piint)]
+    def __init__(self, num):
+        elems = (PicamRoi * num)()
+        self.roi_array = ctypes.cast(elems,ctypes.POINTER(PicamRoi))
+        self.roi_count = num
+
 # PicamAcquisitionErrorsMask
 """
 typedef enum PicamAcquisitionErrorsMask

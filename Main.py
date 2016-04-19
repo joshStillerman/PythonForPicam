@@ -1,5 +1,5 @@
 """
-    PythonForPicam is a Python ctypes interface to the Princeton Instruments PICAM Library
+PythonForPicam is a Python ctypes interface to the Princeton Instruments PICAM Library
     Copyright (C) 2013  Joe Lowney.  The copyright holder can be reached at joelowney@gmail.com
 
     This program is free software: you can redistribute it and/or modify
@@ -20,20 +20,14 @@
 """Test for talking to Picam"""
 import ctypes as ctypes
 
-""" Import standard type definitions from PiTypes.py """
-from PiTypes import *
-
-""" Import non-standard type definitions from PiTypesMore.py """
-from PiTypesMore import *
-
-""" Import function definitions from PiFunctions.py """
-""" This should contian all of the function from picam.h """
-from PiFunctions import *
-
-""" Import parameter lookup from PiParameterLookup.py """
-""" This file includes a function PI_V and a lookup table to return the code
-    for different Picam Parameters described in chapter 4 """
 from PiParameterLookup import *
+
+from PythonForPicam import *
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import sys
 
 ############################
 ##### Custom Functions #####
@@ -50,7 +44,6 @@ def load(x):
     x = ctypes.cdll.LoadLibrary(x)
     return x
 
-
 #########################
 ##### Main Routine  #####
 #########################
@@ -58,8 +51,10 @@ def load(x):
 if __name__ == '__main__':
 
     """ Load the picam.dll """
-    # picamDll = 'C:/Users/becgroup/Documents/Python/DriverTest/Princeton Instruments/Picam/Runtime/Picam.dll'
-    picamDll = 'DLLs/Picam.dll'
+    #picamDll = 'C:/Users/becgroup/Documents/Python/DriverTest/Princeton Instruments/Picam/Runtime/Picam.dll'
+    #picamDll = 'DLLs/Picam.dll'
+    picamDll = 'C:/Program Files/Common Files/Princeton Instruments/Picam/Runtime/Picam.dll'
+
     picam = load(picamDll)
     
     print 'Initialize Camera.',Picam_InitializeLibrary()
@@ -76,24 +71,24 @@ if __name__ == '__main__':
 
     ## Test Routine to connect a demo camera
     ## p23
-    print 'Preparing to connect Demo Camera'   
-    model = ctypes.c_int(10)
-    serial_number = ctypes.c_char_p('Demo Cam 1')
-    PicamID = PicamCameraID()  
-    """
-    PICAM_API Picam_ConnectDemoCamera(
-    PicamModel     model,
-    const pichar*  serial_number,
-    PicamCameraID* id );
-    """
-    print 'Demo camera connetcted with return value = ',Picam_ConnectDemoCamera(model, serial_number, pointer(PicamID))
-    print '\n'
-    
-    print 'Camera model is ',PicamID.model
-    print 'Camera computer interface is ',PicamID.computer_interface
-    print 'Camera sensor_name is ', PicamID.sensor_name
-    print 'Camera serial number is', PicamID.serial_number
-    print '\n'
+#    print 'Preparing to connect Demo Camera'   
+#    model = ctypes.c_int(10)
+#    serial_number = ctypes.c_char_p('Demo Cam 1')
+#    PicamID = PicamCameraID()  
+#    """
+#    PICAM_API Picam_ConnectDemoCamera(
+#    PicamModel     model,
+#    const pichar*  serial_number,
+#    PicamCameraID* id );
+#    """
+#    print 'Demo camera connetcted with return value = ',Picam_ConnectDemoCamera(model, serial_number, pointer(PicamID))
+#    print '\n'
+#    
+#    print 'Camera model is ',PicamID.model
+#    print 'Camera computer interface is ',PicamID.computer_interface
+#    print 'Camera sensor_name is ', PicamID.sensor_name
+#    print 'Camera serial number is', PicamID.serial_number
+#    print '\n'
 
     ## Test routine to open first camera
     ## p20
@@ -103,6 +98,16 @@ if __name__ == '__main__':
     camera = PicamHandle()
     print 'Opening First Camera', Picam_OpenFirstCamera(ctypes.addressof(camera))
 
+    model = ctypes.c_int(10)
+    serial_number = ctypes.c_char_p('Demo Cam 1')
+    PicamID = PicamCameraID()  
+
+    print 'Retrieving camera ID',Picam_GetCameraID(camera,  pointer(PicamID))
+    print 'Camera model is ',PicamID.model
+    print 'Camera computer interface is ',PicamID.computer_interface
+    print 'Camera sensor_name is ', PicamID.sensor_name
+    print 'Camera serial number is', PicamID.serial_number
+    print '\n'
 
     ## Test routine to acquire image
     ## p73
@@ -115,8 +120,8 @@ if __name__ == '__main__':
     PicamAcquisitionErrorsMask* errors );
     """
     readoutstride = piint(0);
-    print "Getting readout stride. ", Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
-
+    print "Getting readout stride. ",Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
+    print "The readoutstride is %d" % readoutstride.value
     """
     Prototype
     PICAM_API Picam_Acquire(
@@ -136,7 +141,7 @@ if __name__ == '__main__':
     """
     readout_count = pi64s(1)
     readout_time_out = piint(1000)
-    available = PicamAvailableData()
+    available = PicamAvailableData(0, 0)
 
     """ Print Debug Information on initial readout """
     print '\n'
@@ -153,31 +158,27 @@ if __name__ == '__main__':
     PicamAvailableData*         available,
     PicamAcquisitionErrorsMask* errors );
     """
-    Picam_Acquire.argtypes = PicamHandle, pi64s, piint, ctypes.POINTER(PicamAvailableData), ctypes.POINTER(PicamAcquisitionErrorsMask)
+#    Picam_Acquire.argtypes = PicamHandle, pi64s, piint, ctypes.POINTER(PicamAvailableData), ctypes.POINTER(PicamAcquisitionErrorsMask)
+    Picam_Acquire.argtypes = [] 
     Picam_Acquire.restype = piint
     
-    print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available), ctypes.byref(errors))
+    print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available),
+                                          ctypes.byref(errors))
     print '\n'
 
     print "available.initial_readout: ",available.initial_readout
     print "Initial readout type is", type(available.initial_readout)
     print '\n'
     
-    """ Close out Library Resources """
-    ## Disconnected the above cameras
-    print 'Disconnecting demo camera', Picam_DisconnectDemoCamera(pointer(PicamID))
-    ## Close down library    
-    print 'Uninitializing',Picam_UninitializeLibrary()
-
-
 
     """ Test Routine to Access Data """
     
     """ Create an array type to hold 1024x1024 16bit integers """
-    DataArrayType = pi16u*1048576
+    sz = readoutstride.value/2
+    DataArrayType = pi16u*sz
 
     """ Create pointer type for the above array type """
-    DataArrayPointerType = ctypes.POINTER(pi16u*1048576)
+    DataArrayPointerType = ctypes.POINTER(pi16u*sz)
 
     """ Create an instance of the pointer type, and point it to initial readout contents (memory address?) """
     DataPointer = ctypes.cast(available.initial_readout,DataArrayPointerType)
@@ -185,23 +186,80 @@ if __name__ == '__main__':
 
     """ Create a separate array with readout contents """
     data = DataPointer.contents
-
-
+    ans = np.empty(sz,np.short)
+    cnt = 0
+    ans[:] = data
+    ans = ans.reshape((512,512))
+    plt.figure()
+    plt.imshow(ans)
+    plt.show()
     """ Write contents of Data to binary file"""
-    libc = ctypes.cdll.msvcrt
-    fopen = libc.fopen
-    fopen.argtypes = ctypes.c_char_p, ctypes.c_char_p
-    fopen.restype = ctypes.c_void_p
 
-    fwrite = libc.fwrite
-    fwrite.argtypes = ctypes.c_void_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_void_p
-    fwrite.restype = ctypes.c_size_t
+    print 'readoutstride is ', readoutstride.value
 
-    fclose = libc.fclose
-    fclose.argtypes = ctypes.c_void_p,
-    fclose.restype = ctypes.c_int
+    # try to do rois
+    rois = PicamRois(2)
+    rois.roi_array[0].x = 0
+    rois.roi_array[0].y = 0
+    rois.roi_array[0].width = 512
+    rois.roi_array[0].x_binning = 1
+    rois.roi_array[0].height = 100
+    rois.roi_array[0].y_binning = 100
 
-    fp = fopen('PythonBinOutput.raw', 'wb')
-    print 'fwrite returns: ',fwrite(data, readoutstride.value, 1, fp)
+    rois.roi_array[1].x = 0
+    rois.roi_array[1].y = 200
+    rois.roi_array[1].width = 512
+    rois.roi_array[1].x_binning = 1
+    rois.roi_array[1].height = 100
+    rois.roi_array[1].y_binning = 100
 
-    fclose(fp)
+    Picam_SetParameterRoisValue(camera, PicamParameter_Rois, pointer(rois))
+
+    failCount = piint()
+    paramsFailed = piint()
+    Picam_CommitParameters(camera, pointer(paramsFailed), ctypes.byref(failCount))
+    Picam_DestroyParameters(pointer(paramsFailed))
+
+    readoutstride = piint(0);
+    print "Getting readout stride. ",Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
+    print "The readoutstride is %d" % readoutstride.value
+
+    print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available),
+                                          ctypes.byref(errors))
+    print "available.initial_readout: ",available.initial_readout
+    print "Initial readout type is", type(available.initial_readout)
+    print '\n'
+    
+
+    """ Test Routine to Access Data """
+    
+    """ Create an array type to hold 1024x1024 16bit integers """
+    sz = readoutstride.value/2
+    DataArrayType = pi16u*sz
+
+    """ Create pointer type for the above array type """
+    DataArrayPointerType = ctypes.POINTER(pi16u*sz)
+
+    """ Create an instance of the pointer type, and point it to initial readout contents (memory address?) """
+    DataPointer = ctypes.cast(available.initial_readout,DataArrayPointerType)
+
+
+    """ Create a separate array with readout contents """
+    data = DataPointer.contents
+    print "make the nparray"
+    ans = np.empty(sz,np.short)
+    ans[:] = data
+    ans = ans.reshape((512, sz/512))
+    print ans.flags
+    print ans.shape
+    plt.figure()
+    plt.plot(ans)
+    plt.show()
+    """ Write contents of Data to binary file"""
+
+    print 'readoutstride is ', readoutstride.value
+    print ans
+
+
+    """ Close out Library Resources """
+    print 'Uninitializing',Picam_UninitializeLibrary()
