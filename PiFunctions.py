@@ -17,7 +17,10 @@
 """
 import ctypes as ctypes
 picamDll = 'Picam.dll'
-picam = ctypes.cdll.LoadLibrary(picamDll)
+try:
+    picam = ctypes.cdll.LoadLibrary(picamDll)
+except:
+    print "Could not load Princeton Instruments DLL.  Make sure that Picam.dll is in the system path"
     
 ### Begin imported Functions
 
