@@ -234,4 +234,22 @@ PicamParameter_SensorTemperatureStatus           = PI_V("Enumeration",   "None",
 PicamParameter_DisableCoolingFan                 = PI_V("Boolean",       "Collection",   29)
 """
 /*-------------------------------------------------------------------------------------*/
+ * Trigger parameter values
+ */
 """
+PicamTriggerCoupling_AC = 1
+PicamTriggerCoupling_DC = 2
+PicamTriggerDetermination_PositivePolarity = 1
+PicamTriggerDetermination_NegativePolarity = 2
+PicamTriggerDetermination_RisingEdge       = 3
+PicamTriggerDetermination_FallingEdge      = 4
+PicamTriggerResponse_NoResponse               = 1
+PicamTriggerResponse_ReadoutPerTrigger        = 2
+PicamTriggerResponse_ShiftPerTrigger          = 3
+PicamTriggerResponse_ExposeDuringTriggerPulse = 4
+PicamTriggerResponse_StartOnSingleTrigger     = 5
+PicamTriggerSource_External = 1
+PicamTriggerSource_Internal = 2
+PicamTriggerTermination_FiftyOhms     = 1
+PicamTriggerTermination_HighImpedance = 2
+
