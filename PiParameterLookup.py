@@ -253,3 +253,21 @@ PicamTriggerSource_Internal = 2
 PicamTriggerTermination_FiftyOhms     = 1
 PicamTriggerTermination_HighImpedance = 2
 
+"""
+/*-------------------------------------------------------------------------------------*/
+ * PicamOutputSignal parameter values
+ */
+"""
+
+PicamOutputSignal_NotReadingOut       =  1
+PicamOutputSignal_ShutterOpen         =  2
+PicamOutputSignal_Busy                =  3
+PicamOutputSignal_AlwaysLow           =  4
+PicamOutputSignal_AlwaysHigh          =  5
+PicamOutputSignal_Acquiring           =  6 
+PicamOutputSignal_ShiftingUnderMask   =  7
+PicamOutputSignal_Exposing            =  8
+PicamOutputSignal_EffectivelyExposing =  9
+PicamOutputSignal_ReadingOut          = 10
+PicamOutputSignal_WaitingForTrigger   = 11
+
