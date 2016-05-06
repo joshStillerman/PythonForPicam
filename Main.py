@@ -119,99 +119,126 @@ if __name__ == '__main__':
     PicamAvailableData*         available,
     PicamAcquisitionErrorsMask* errors );
     """
-    readoutstride = piint(0);
-    print "Getting readout stride. ",Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
-    print "The readoutstride is %d" % readoutstride.value
-    """
-    Prototype
-    PICAM_API Picam_Acquire(
-    PicamHandle                 camera,
-    pi64s                       readout_count,
-    piint                       readout_time_out,
-    PicamAvailableData*         available,
-    PicamAcquisitionErrorsMask* errors );
-    """
-
-    """
-    typedef struct PicamAvailableData
-    {
-        void* initial_readout;
-        pi64s readout_count;
-    } PicamAvailableData;
-    """
-    readout_count = pi64s(1)
-    readout_time_out = piint(1000)
-    available = PicamAvailableData(0, 0)
-
-    """ Print Debug Information on initial readout """
-    print '\n'
-    print "available.initial_readout: ",available.initial_readout
-    print "Initial readout type is", type(available.initial_readout)
-    errors = PicamAcquisitionErrorsMask()
-
-    """
-    Prototype
-    PICAM_API Picam_Acquire(
-    PicamHandle                 camera,
-    pi64s                       readout_count,
-    piint                       readout_time_out,
-    PicamAvailableData*         available,
-    PicamAcquisitionErrorsMask* errors );
-    """
-#    Picam_Acquire.argtypes = PicamHandle, pi64s, piint, ctypes.POINTER(PicamAvailableData), ctypes.POINTER(PicamAcquisitionErrorsMask)
-    Picam_Acquire.argtypes = [] 
-    Picam_Acquire.restype = piint
+    readoutstride = piint(0)
+    for i in [8,5]:
+        print i+1
+        print "Getting readout stride. ",Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
+        print "The readoutstride is %d" % readoutstride.value
+        """
+        Prototype
+        PICAM_API Picam_Acquire(
+        PicamHandle                 camera,
+        pi64s                       readout_count,
+        piint                       readout_time_out,
+        PicamAvailableData*         available,
+        PicamAcquisitionErrorsMask* errors );
+        """
     
-    print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available),
-                                          ctypes.byref(errors))
-    print '\n'
-
-    print "available.initial_readout: ",available.initial_readout
-    print "Initial readout type is", type(available.initial_readout)
-    print '\n'
+        """
+        typedef struct PicamAvailableData
+        {
+            void* initial_readout;
+            pi64s readout_count;
+        } PicamAvailableData;
+        """
+        Picam_SetParameterIntegerValue( camera, PicamParameter_TriggerResponse, PicamTriggerResponse_NoResponse)
+        Picam_SetParameterIntegerValue( camera, PicamParameter_TriggerDetermination, PicamTriggerDetermination_PositivePolarity )
+        Picam_SetParameterIntegerValue( camera, PicamParameter_OutputSignal, i+1 )
+        exposure = piflt(10.)
+        picam.Picam_SetParameterFloatingPointValue.argtypes=[PicamHandle, piint, piflt]
+        status = Picam_SetParameterFloatingPointValue(camera, PicamParameter_ExposureTime, exposure)
+        print " %s = Picam_SetParameterFloatingPointValue(camera, %d, "% (status,PicamParameter_ExposureTime,), exposure,")"
+        failCount = piint()
+        paramsFailed = piint()
+        status = Picam_CommitParameters(camera, pointer(paramsFailed), ctypes.byref(failCount))
+        print "commit returned ", status, "failCount is ",failCount
+        readout_count = pi64s(4)
+        readout_time_out = piint(100000)
+        available = PicamAvailableData(0, 0)
     
-
-    """ Test Routine to Access Data """
+        """ Print Debug Information on initial readout """
+        print '\n'
+        print "available.initial_readout: ",available.initial_readout
+        print "Initial readout type is", type(available.initial_readout)
+        errors = PicamAcquisitionErrorsMask()
     
-    """ Create an array type to hold 1024x1024 16bit integers """
-    sz = readoutstride.value/2
-    DataArrayType = pi16u*sz
-
-    """ Create pointer type for the above array type """
-    DataArrayPointerType = ctypes.POINTER(pi16u*sz)
-
-    """ Create an instance of the pointer type, and point it to initial readout contents (memory address?) """
-    DataPointer = ctypes.cast(available.initial_readout,DataArrayPointerType)
-
-
-    """ Create a separate array with readout contents """
-    data = DataPointer.contents
-    ans = np.empty(sz,np.short)
-    cnt = 0
-    ans[:] = data
-    ans = ans.reshape((512,512))
-    plt.figure()
-    plt.imshow(ans)
-    plt.show()
+        """
+        Prototype
+        PICAM_API Picam_Acquire(
+        PicamHandle                 camera,
+        pi64s                       readout_count,
+        piint                       readout_time_out,
+        PicamAvailableData*         available,
+        PicamAcquisitionErrorsMask* errors );
+        """
+    #    Picam_Acquire.argtypes = PicamHandle, pi64s, piint, ctypes.POINTER(PicamAvailableData), ctypes.POINTER(PicamAcquisitionErrorsMask)
+        Picam_Acquire.argtypes = [] 
+        Picam_Acquire.restype = piint
+        
+        print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available),
+                                              ctypes.byref(errors))
+        print '\n'
+    
+        print "available.initial_readout: ",available.initial_readout
+        print "Initial readout type is", type(available.initial_readout)
+        print '\n'
+        
+    
+        """ Test Routine to Access Data """
+        
+        """ Create an array type to hold 1024x1024 16bit integers """
+        sz = readoutstride.value/2
+        DataArrayType = pi16u*sz
+    
+        """ Create pointer type for the above array type """
+        DataArrayPointerType = ctypes.POINTER(pi16u*sz)
+    
+        """ Create an instance of the pointer type, and point it to initial readout contents (memory address?) """
+        DataPointer = ctypes.cast(available.initial_readout,DataArrayPointerType)
+    
+    
+        """ Create a separate array with readout contents """
+        data = DataPointer.contents
+        ans = np.empty(sz,np.short)
+        cnt = 0
+        ans[:] = data
+        ans = ans.reshape((512,512))
+        plt.figure()
+        plt.imshow(ans)
+        plt.show()
     """ Write contents of Data to binary file"""
 
     print 'readoutstride is ', readoutstride.value
 
     # try to do rois
-    rois = PicamRois(2)
+    rois = PicamRois(4)
     rois.roi_array[0].x = 0
-    rois.roi_array[0].y = 0
     rois.roi_array[0].width = 512
     rois.roi_array[0].x_binning = 1
-    rois.roi_array[0].height = 100
-    rois.roi_array[0].y_binning = 100
+    rois.roi_array[0].y = 76
+    rois.roi_array[0].height = 60
+    rois.roi_array[0].y_binning = 60
 
     rois.roi_array[1].x = 0
-    rois.roi_array[1].y = 200
     rois.roi_array[1].width = 512
     rois.roi_array[1].x_binning = 1
-    rois.roi_array[1].height = 100
-    rois.roi_array[1].y_binning = 100
+    rois.roi_array[1].y = 185
+    rois.roi_array[1].height = 60
+    rois.roi_array[1].y_binning = 60
+
+    rois.roi_array[2].x = 0
+    rois.roi_array[2].width = 512
+    rois.roi_array[2].x_binning = 1
+    rois.roi_array[2].y = 294
+    rois.roi_array[2].height = 60
+    rois.roi_array[2].y_binning = 60
+
+    rois.roi_array[3].x = 0
+    rois.roi_array[3].width = 512
+    rois.roi_array[3].x_binning = 1
+    rois.roi_array[3].y = 403
+    rois.roi_array[3].height = 60
+    rois.roi_array[3].y_binning = 60
 
     Picam_SetParameterRoisValue(camera, PicamParameter_Rois, pointer(rois))
 
@@ -223,7 +250,7 @@ if __name__ == '__main__':
     readoutstride = piint(0);
     print "Getting readout stride. ",Picam_GetParameterIntegerValue( camera, ctypes.c_int(PicamParameter_ReadoutStride), ctypes.byref(readoutstride) );
     print "The readoutstride is %d" % readoutstride.value
-
+    readout_count = pi64s(100)
     print '\nAcquiring... ',Picam_Acquire(camera, readout_count, readout_time_out, ctypes.byref(available),
                                           ctypes.byref(errors))
     print "available.initial_readout: ",available.initial_readout
@@ -234,7 +261,8 @@ if __name__ == '__main__':
     """ Test Routine to Access Data """
     
     """ Create an array type to hold 1024x1024 16bit integers """
-    sz = readoutstride.value/2
+    sz = readout_count.value*readoutstride.value/2
+    print "sz is ", sz
     DataArrayType = pi16u*sz
 
     """ Create pointer type for the above array type """
@@ -249,7 +277,7 @@ if __name__ == '__main__':
     print "make the nparray"
     ans = np.empty(sz,np.short)
     ans[:] = data
-    ans = ans.reshape((512, sz/512))
+    ans = ans.reshape((readout_count.value, readoutstride.value/2/512, 512))
     print ans.flags
     print ans.shape
     plt.figure()
